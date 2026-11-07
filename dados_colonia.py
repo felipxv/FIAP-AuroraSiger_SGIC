@@ -34,6 +34,11 @@ colonia = {
     },
 }
 
+# Histórico de medições da turbina eólica, usado na regressão: 
+# cada posição das duas listas é uma medição (vento em km/h e energia gerada em kWh).
+historico_vento = [6, 8, 9, 10, 12, 14, 15, 18]
+historico_eolica = [11.5, 15.0, 17.0, 19.5, 23.0, 26.5, 28.0, 33.0]
+
 
 def buscar_subsistema(no, caminho):
     """ PROTÓTIPO: buscar_subsistema(no: dict, caminho: list): dict | valor | None
