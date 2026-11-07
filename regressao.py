@@ -35,3 +35,16 @@ def prever(b0, b1, x_novo):
     """ PROTÓTIPO: prever(b0: float, b1: float, x_novo: float): float
     Usa a reta já ajustada para estimar y num valor de x que não está no histórico. """
     return b0 + b1 * x_novo
+
+
+def r_quadrado(x, y, b0, b1):
+    """ PROTÓTIPO: r_quadrado(x: list, y: list, b0: float, b1: float): float
+    Mede o quanto a reta explica os dados: 1 é um ajuste perfeito e valores
+    perto de 0 mostram que a reta quase não explica nada. """
+    media_y = media(y)
+    erro_reta = 0.0
+    variacao_total = 0.0
+    for i in range(len(x)):
+        erro_reta += (y[i] - prever(b0, b1, x[i])) ** 2
+        variacao_total += (y[i] - media_y) ** 2
+    return 1 - erro_reta / variacao_total
