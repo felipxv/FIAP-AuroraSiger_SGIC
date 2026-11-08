@@ -18,3 +18,13 @@ def analisar_balanco(geracao, consumo):
         return "SUGESTÃO: armazenar energia excedente"
     else:
         return "NORMAL: geração e consumo equilibrados"
+
+
+def autonomia_horas(reserva, geracao, consumo):
+    """ PROTÓTIPO: autonomia_horas(reserva: float, geracao: float, consumo: float): float | None
+    Quantas horas a reserva aguenta o déficit (consumo - geração).
+    Devolve None quando não há déficit, porque a reserva não está sendo gasta. """
+    deficit = consumo - geracao
+    if deficit <= 0:
+        return None
+    return reserva / deficit
