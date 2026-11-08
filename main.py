@@ -5,7 +5,7 @@
 from dados_colonia import colonia, historico_vento, historico_eolica, buscar_subsistema, listar_subsistemas
 from regras_decisao import regra_energia_baixa, regra_modo_economia, decidir
 from regressao import ajustar_reta, prever, r_quadrado
-from analise_energia import geracao_total, analisar_balanco
+from analise_energia import geracao_total, analisar_balanco, autonomia_horas
 
 
 def titulo(texto):
@@ -65,8 +65,9 @@ def mostrar_regras():
 
 
 def mostrar_previsao():
-    """ PROTÓTIPO: mostrar_previsao(): None
-    Ajusta a reta no exemplo da atividade e no histórico da turbina e faz as previsões. """
+    """ PROTÓTIPO: mostrar_previsao(): float
+    Ajusta a reta no exemplo da atividade e no histórico da turbina e faz as previsões.
+    Devolve a energia eólica prevista, que a parte 4 usa. """
 
     titulo("3. PREVISÃO (REGRESSÃO LINEAR SIMPLES)")
 
@@ -84,26 +85,49 @@ def mostrar_previsao():
     print(f"Histórico da turbina ({len(historico_vento)} medições):")
     print(f"   Reta: energia = {b0:.2f} + {b1:.2f} * vento")
     print(f"   R² = {r2:.3f}")
-    print(f"   Vento atual {vento_atual} km/h -> previsão de {prever(b0, b1, vento_atual):.1f} kWh")
+    previsao = prever(b0, b1, vento_atual)
+    print(f"   Vento atual {vento_atual} km/h -> previsão de {previsao:.1f} kWh")
     print("   Obs.: a potência real cresce com o cubo do vento; a reta é uma aproximação.")
+    return previsao
 
 
-def mostrar_analise_energia():
-    """ PROTÓTIPO: mostrar_analise_energia(): None
-    Compara a geração total com o consumo da colônia e mostra o que fazer. """
+def mostrar_autonomia(reserva, geracao, consumo):
+    """ PROTÓTIPO: mostrar_autonomia(reserva: float, geracao: float, consumo: float): None
+    Mostra por quantas horas a reserva aguenta, ou avisa que não há déficit. """
+
+    horas = autonomia_horas(reserva, geracao, consumo)
+    if horas is None:
+        print("Autonomia da reserva: sem déficit, a reserva não está sendo usada.")
+    else:
+        print(f"Autonomia da reserva neste ritmo: {horas:.1f} horas")
+
+
+def mostrar_analise_energia(previsao):
+    """ PROTÓTIPO: mostrar_analise_energia(previsao: float): None
+    Compara a geração com o consumo da colônia, agora e com a geração eólica prevista. """
 
     titulo("4. ANÁLISE DE ENERGIA (kWh)")
+    print("Exemplos da atividade:")
+    for geracao_teste, consumo_teste in [(40, 70), (80, 30)]:
+        print(f"   geração {geracao_teste} | consumo {consumo_teste} -> {analisar_balanco(geracao_teste, consumo_teste)}")
+
     energia = colonia["energia"]
     geracao = geracao_total(energia)
     consumo = energia["consumo_kwh"]
-
-    print(f"Geração: solar {energia['solar']['geracao_kwh']} + eólica {energia['eolica']['geracao_kwh']} = {geracao} kWh")
-    print(f"Consumo: {consumo} kWh")
-    print(analisar_balanco(geracao, consumo))
+    reserva = energia["reserva_kwh"]
 
     print()
-    print("Cenário de teste: geração 60.5 kWh | consumo 45.0 kWh")
-    print(analisar_balanco(60.5, 45.0))
+    print(f"Colônia agora: solar {energia['solar']['geracao_kwh']} + eólica {energia['eolica']['geracao_kwh']} = {geracao} kWh")
+    print(f"Consumo: {consumo} kWh | reserva: {reserva} kWh")
+    print(analisar_balanco(geracao, consumo))
+    mostrar_autonomia(reserva, geracao, consumo)
+
+    # A turbina passa a valer a previsão feita na parte 3
+    geracao_prevista = energia["solar"]["geracao_kwh"] + previsao
+    print()
+    print(f"Com a eólica prevista ({previsao:.1f} kWh), a geração vai a {geracao_prevista:.1f} kWh")
+    print(analisar_balanco(geracao_prevista, consumo))
+    mostrar_autonomia(reserva, geracao_prevista, consumo)
 
 
 def main():
@@ -113,8 +137,8 @@ def main():
     print("SGIC: Sistema de Gestão Inteligente da Colônia Aurora Siger")
     mostrar_estrutura()
     mostrar_regras()
-    mostrar_previsao()
-    mostrar_analise_energia()
+    previsao = mostrar_previsao()
+    mostrar_analise_energia(previsao)
 
 
 if __name__ == "__main__":
