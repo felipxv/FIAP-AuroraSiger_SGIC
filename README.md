@@ -168,7 +168,7 @@ Histórico da turbina (8 medições):
 ============================================================
 4. ANÁLISE DE ENERGIA (kWh)
 ============================================================
-Cenários de teste:
+Exemplos da atividade:
    geração 40 | consumo 70 -> ALERTA: consumo maior que geração
    geração 80 | consumo 30 -> SUGESTÃO: armazenar energia excedente
 
