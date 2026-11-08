@@ -13,7 +13,7 @@ O código separa dados, lógica e decisões em arquivos diferentes:
 | `dados_colonia.py` | Dados | Dicionário `colonia`, históricos de vento e energia eólica, `buscar_subsistema` e `listar_subsistemas` |
 | `regras_decisao.py` | Decisões | `regra_energia_baixa`, `regra_modo_economia`, `sistemas_a_desligar`, `decidir` |
 | `regressao.py` | Lógica (previsão) | `media`, `ajustar_reta`, `prever`, `r_quadrado` |
-| `analise_energia.py` | Lógica (energia) | `geracao_total`, `analisar_balanco` |
+| `analise_energia.py` | Lógica (energia) | `geracao_total`, `analisar_balanco`, `autonomia_horas` |
 | `main.py` | Apresentação | Chama as funções acima e mostra os resultados na tela |
 
 ## Como funciona
@@ -32,6 +32,8 @@ colonia
 ├── clima            (temperatura, vento, tempestade)
 └── sistemas         (suporte de vida, aquecimento, comunicação, laboratório, iluminação externa, estufa)
 ```
+
+O consumo de cada sistema soma 70 kWh (18 + 22 + 5 + 9 + 6 + 10), o mesmo valor de `consumo_kwh` da energia.
 
 Duas funções recursivas navegam pela árvore:
 
@@ -88,6 +90,10 @@ Aqui os valores são em kWh. `geracao_total` soma a geração solar e a eólica,
 | geração > consumo | `SUGESTÃO: armazenar energia excedente` |
 | iguais | `NORMAL: geração e consumo equilibrados` |
 
+Quando o consumo passa da geração, a diferença sai da reserva. `autonomia_horas` calcula por quantas horas a reserva aguenta esse déficit (`reserva / (consumo - geração)`) e devolve `None` quando não há déficit, porque a reserva não está sendo gasta.
+
+O `main.py` faz a análise duas vezes: com a geração registrada agora e com a geração eólica trocada pela previsão da parte 3, para o vento atual. Com os dados de exemplo, a reta prevê 20,8 kWh para vento de 11 km/h, enquanto a geração eólica registrada é 18,5 kWh. Os dados são fictícios e a reta é uma aproximação, então os dois valores não precisam coincidir.
+
 ## Como executar
 
 Requisito: Python 3.12 ou mais recente. Não há dependências para instalar.
@@ -100,7 +106,7 @@ python main.py
 
 ## Exemplo de entrada e saída
 
-**Entrada** (valores atuais em `dados_colonia.py`): energia 42%, consumo 68%, geração solar 42,0 kWh, geração eólica 18,5 kWh, consumo 70,0 kWh, vento 11 km/h.
+**Entrada** (valores atuais em `dados_colonia.py`): energia 42%, consumo 68%, geração solar 42,0 kWh, geração eólica 18,5 kWh, consumo 70,0 kWh, reserva 120,0 kWh, vento 11 km/h.
 
 **Saída** de `python main.py` (a árvore completa da seção 1 foi encurtada aqui):
 
@@ -121,7 +127,7 @@ energia/
 Navegação: energia -> solar
 {'geracao_kwh': 42.0, 'status': 'operacional'}
 Navegação: sistemas -> suporte_vida -> consumo_kwh
-25.0
+18.0
 Navegação: energia -> nuclear (não existe)
 None
 
@@ -162,12 +168,18 @@ Histórico da turbina (8 medições):
 ============================================================
 4. ANÁLISE DE ENERGIA (kWh)
 ============================================================
-Geração: solar 42.0 + eólica 18.5 = 60.5 kWh
-Consumo: 70.0 kWh
-ALERTA: consumo maior que geração
+Cenários de teste:
+   geração 40 | consumo 70 -> ALERTA: consumo maior que geração
+   geração 80 | consumo 30 -> SUGESTÃO: armazenar energia excedente
 
-Cenário de teste: geração 60.5 kWh | consumo 45.0 kWh
-SUGESTÃO: armazenar energia excedente
+Colônia agora: solar 42.0 + eólica 18.5 = 60.5 kWh
+Consumo: 70.0 kWh | reserva: 120.0 kWh
+ALERTA: consumo maior que geração
+Autonomia da reserva neste ritmo: 12.6 horas
+
+Com a eólica prevista (20.8 kWh), a geração vai a 62.8 kWh
+ALERTA: consumo maior que geração
+Autonomia da reserva neste ritmo: 16.6 horas
 ```
 
 ## Como testar
@@ -189,9 +201,15 @@ python -c "from dados_colonia import colonia, buscar_subsistema; print(buscar_su
 
 # Balanço equilibrado (esperado: NORMAL: geração e consumo equilibrados)
 python -c "from analise_energia import analisar_balanco; print(analisar_balanco(50, 50))"
+
+# Autonomia com déficit de 9,5 kWh (esperado: 12.6)
+python -c "from analise_energia import autonomia_horas; print(round(autonomia_horas(120, 60.5, 70), 1))"
+
+# Sem déficit a reserva não é usada (esperado: None)
+python -c "from analise_energia import autonomia_horas; print(autonomia_horas(120, 80, 70))"
 ```
 
-Para simular outra situação, altere os valores em `dados_colonia.py` (por exemplo, `nivel_percentual` para 80 ou `consumo_kwh` para 50.0) e rode `python main.py` de novo.
+Para simular outra situação, altere os valores em `dados_colonia.py` e rode `python main.py` de novo. Por exemplo, com `nivel_percentual` em 80 a decisão passa a ser NORMAL; com `consumo_kwh` em 50.0 a análise sugere armazenar o excedente e informa que a reserva não está sendo usada.
 
 ## Como o sistema ajuda no uso de energia
 
@@ -199,3 +217,4 @@ Para simular outra situação, altere os valores em `dados_colonia.py` (por exem
 - Escolhe quais sistemas desligar sem tocar nos essenciais, começando pelos que mais consomem.
 - Prevê quanto a turbina vai gerar com o vento esperado, o que permite planejar o consumo antes de faltar energia.
 - Avisa quando o consumo passa da geração e sugere armazenar o excedente quando sobra energia.
+- Calcula por quantas horas a reserva aguenta o déficit, agora e com a geração prevista, para mostrar quanto tempo a colônia tem para reagir.
