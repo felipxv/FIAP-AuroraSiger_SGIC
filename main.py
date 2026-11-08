@@ -107,7 +107,7 @@ def mostrar_analise_energia(previsao):
     Compara a geração com o consumo da colônia, agora e com a geração eólica prevista. """
 
     titulo("4. ANÁLISE DE ENERGIA (kWh)")
-    print("Exemplos da atividade:")
+    print("Cenários de teste:")
     for geracao_teste, consumo_teste in [(40, 70), (80, 30)]:
         print(f"   geração {geracao_teste} | consumo {consumo_teste} -> {analisar_balanco(geracao_teste, consumo_teste)}")
 
