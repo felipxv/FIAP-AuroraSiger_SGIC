@@ -24,13 +24,14 @@ colonia = {
         "vento_kmh": 11.0,
         "tempestade": False,
     },
+    # O consumo de cada sistema soma 70 kWh, o mesmo valor de consumo_kwh da energia.
     "sistemas": {
-        "suporte_vida":       {"essencial": True,  "ligado": True, "consumo_kwh": 25.0},
-        "aquecimento":        {"essencial": True,  "ligado": True, "consumo_kwh": 30.0},
-        "comunicacao":        {"essencial": True,  "ligado": True, "consumo_kwh": 8.0},
-        "laboratorio":        {"essencial": False, "ligado": True, "consumo_kwh": 15.0},
-        "iluminacao_externa": {"essencial": False, "ligado": True, "consumo_kwh": 12.0},
-        "estufa":             {"essencial": False, "ligado": True, "consumo_kwh": 20.0},
+        "suporte_vida":       {"essencial": True,  "ligado": True, "consumo_kwh": 18.0},
+        "aquecimento":        {"essencial": True,  "ligado": True, "consumo_kwh": 22.0},
+        "comunicacao":        {"essencial": True,  "ligado": True, "consumo_kwh": 5.0},
+        "laboratorio":        {"essencial": False, "ligado": True, "consumo_kwh": 9.0},
+        "iluminacao_externa": {"essencial": False, "ligado": True, "consumo_kwh": 6.0},
+        "estufa":             {"essencial": False, "ligado": True, "consumo_kwh": 10.0},
     },
 }
 
